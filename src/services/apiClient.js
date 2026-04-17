@@ -1,4 +1,12 @@
+import axios from "axios";
 import { API_BASE_URL } from "../config";
+
+const DEFAULT_TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS || 10000);
+
+const http = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: Number.isFinite(DEFAULT_TIMEOUT_MS) ? DEFAULT_TIMEOUT_MS : 10000
+});
 
 function buildHeaders(token, hasBody, extraHeaders = {}) {
   const headers = {
@@ -25,36 +33,50 @@ function resolveErrorMessage(payload, fallback) {
   );
 }
 
+http.interceptors.response.use(
+  (response) => {
+    const payload = response.data;
+    const fallbackError = response.config?.__fallbackError || "API request failed";
+
+    if (payload && payload.isSuccess === false) {
+      return Promise.reject(new Error(resolveErrorMessage(payload, fallbackError)));
+    }
+
+    return response;
+  },
+  (error) => {
+    if (!axios.isAxiosError(error)) {
+      return Promise.reject(error);
+    }
+
+    const fallbackError = error.config?.__fallbackError || "API request failed";
+
+    if (error.code === "ECONNABORTED") {
+      return Promise.reject(new Error("Request timeout"));
+    }
+
+    const payload = error.response?.data;
+    return Promise.reject(new Error(resolveErrorMessage(payload, fallbackError)));
+  }
+);
+
 export async function apiRequest({
   path,
   method = "GET",
   token,
   body,
   headers,
-  fallbackError = "API 呼叫失敗"
+  fallbackError = "API request failed"
 }) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await http.request({
+    url: path,
     method,
+    data: body,
     headers: buildHeaders(token, body !== undefined, headers),
-    body: body === undefined ? undefined : JSON.stringify(body)
+    __fallbackError: fallbackError
   });
 
-  let payload = null;
-  try {
-    payload = await response.json();
-  } catch {
-    // ignore non-JSON response
-  }
-
-  if (!response.ok) {
-    throw new Error(resolveErrorMessage(payload, fallbackError));
-  }
-
-  if (payload && payload.isSuccess === false) {
-    throw new Error(resolveErrorMessage(payload, fallbackError));
-  }
-
-  return payload;
+  return response.data;
 }
 
 export async function apiGet(path, options = {}) {
