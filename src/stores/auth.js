@@ -1,78 +1,78 @@
 import { defineStore } from "pinia";
+import { loginApi } from "../services/authService";
 
 const SESSION_KEY = "workitem-session-user";
-
-const accounts = [
-  {
-    username: "admin",
-    password: "admin",
-    role: "admin",
-    name: "System Admin"
-  },
-  {
-    username: "user1",
-    password: "1234",
-    role: "user",
-    name: "User One"
-  },
-  {
-    username: "user2",
-    password: "1234",
-    role: "user",
-    name: "User Two"
-  }
-];
+const TOKEN_KEY = "workitem-session-token";
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: null
+    user: null,
+    token: null
   }),
   getters: {
     isAuthenticated: (state) => Boolean(state.user),
-    isAdmin: (state) => state.user?.role === "admin"
+    isAdmin: (state) => String(state.user?.role || "").toLowerCase() === "admin"
   },
   actions: {
     restoreSession() {
       if (this.user) {
         return;
       }
-      const username = localStorage.getItem(SESSION_KEY);
-      if (!username) {
+      const rawUser = localStorage.getItem(SESSION_KEY);
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!rawUser) {
         return;
       }
-      const found = accounts.find((entry) => entry.username === username);
-      if (found) {
-        this.user = {
-          username: found.username,
-          role: found.role,
-          name: found.name
-        };
+
+      try {
+        this.user = JSON.parse(rawUser);
+        this.token = token || null;
+      } catch {
+        this.user = null;
+        this.token = null;
+        localStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(TOKEN_KEY);
       }
     },
-    login(username, password) {
-      const found = accounts.find(
-        (entry) => entry.username === username.trim() && entry.password === password
-      );
-      if (!found) {
+    async login(username, password) {
+      try {
+        const payload = await loginApi(username.trim(), password);
+        const resolvedUser = payload?.data || {
+          username: username.trim(),
+          role: username.trim().toLowerCase() === "admin" ? "admin" : "user"
+        };
+        const resolvedToken =
+          payload?.data?.token || payload?.token || payload?.accessToken || payload?.jwt || null;
+
+        this.user = {
+          id: resolvedUser.id,
+          username: resolvedUser.username || username.trim(),
+          name: resolvedUser.username || username.trim(),
+          role: String(resolvedUser.role || "user").toLowerCase()
+        };
+        this.token = resolvedToken;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(this.user));
+        if (resolvedToken) {
+          localStorage.setItem(TOKEN_KEY, resolvedToken);
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+        }
+
+        return {
+          ok: true
+        };
+      } catch (error) {
         return {
           ok: false,
-          message: "帳號或密碼錯誤"
+          message: error instanceof Error ? error.message : "登入失敗"
         };
       }
-
-      this.user = {
-        username: found.username,
-        role: found.role,
-        name: found.name
-      };
-      localStorage.setItem(SESSION_KEY, found.username);
-      return {
-        ok: true
-      };
     },
     logout() {
       this.user = null;
+      this.token = null;
       localStorage.removeItem(SESSION_KEY);
+      localStorage.removeItem(TOKEN_KEY);
     }
   }
 });

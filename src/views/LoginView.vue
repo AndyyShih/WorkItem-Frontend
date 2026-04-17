@@ -6,13 +6,19 @@ import { useAuthStore } from "../stores/auth";
 const auth = useAuthStore();
 const router = useRouter();
 const form = reactive({
-  username: "user1",
-  password: "1234"
+  username: "",
+  password: ""
 });
 const errorMessage = ref("");
+const submitting = ref(false);
 
-function login() {
-  const result = auth.login(form.username, form.password);
+async function login() {
+  if (submitting.value) {
+    return;
+  }
+  submitting.value = true;
+  const result = await auth.login(form.username, form.password);
+  submitting.value = false;
   if (!result.ok) {
     errorMessage.value = result.message;
     return;
@@ -25,7 +31,7 @@ function login() {
 <template>
   <section class="card login-card">
     <h1>登入</h1>
-    <p>測試帳號：admin/admin、user1/1234、user2/1234</p>
+    <p>請輸入帳號密碼。</p>
 
     <form class="form-grid" @submit.prevent="login">
       <label class="field">
@@ -39,7 +45,9 @@ function login() {
       </label>
 
       <p v-if="errorMessage" class="banner error">{{ errorMessage }}</p>
-      <button type="submit">登入</button>
+      <button type="submit" :disabled="submitting">
+        {{ submitting ? "登入中..." : "登入" }}
+      </button>
     </form>
   </section>
 </template>
