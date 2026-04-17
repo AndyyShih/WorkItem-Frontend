@@ -16,7 +16,6 @@
       <aside v-if="auth.isAuthenticated" class="sidebar">
         <RouterLink to="/">導覽首頁</RouterLink>
         <RouterLink to="/work-items">Work Item</RouterLink>
-        <RouterLink v-if="auth.isAdmin" to="/admin/work-items">Admin Work Item</RouterLink>
       </aside>
 
       <main :class="['content-area', route.name === 'login' ? 'content-center' : '']">

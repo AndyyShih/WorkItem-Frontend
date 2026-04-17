@@ -1,7 +1,10 @@
 ﻿const GET_LIST_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetListWorkItem";
-const GET_DETAIL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetDetail";
-const BATCH_CONFIRM_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/BatchConfirm";
-const BATCH_CANCEL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/BatchCancel";
+const GET_DETAIL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetWorkItemDetail";
+const BATCH_CONFIRM_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/BatchWorkItemConfirm";
+const BATCH_CANCEL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/BatchWorkItemCancel";
+const CREATE_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/CreateWorkItem";
+const UPDATE_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/UpdateWorkItem";
+const DELETE_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/DeleteWorkItem";
 
 function requireToken(token) {
   if (!token) {
@@ -168,17 +171,56 @@ export async function undoWorkItem(_userId, id, token) {
 }
 
 export async function listAdminItems() {
-  throw new Error("後台清單 API 尚未串接");
+  throw new Error("Admin 獨立頁面已停用");
 }
 
-export async function createAdminItem() {
-  throw new Error("後台新增 API 尚未串接");
+export async function createAdminItem(payload, token) {
+  requireToken(token);
+  const response = await fetch(CREATE_WORK_ITEM_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      title: payload.title,
+      description: payload.description || ""
+    })
+  });
+  await parseApiResponse(response, "新增工作項目失敗");
+  return true;
 }
 
-export async function updateAdminItem() {
-  throw new Error("後台修改 API 尚未串接");
+export async function updateAdminItem(id, payload, token) {
+  requireToken(token);
+  const response = await fetch(UPDATE_WORK_ITEM_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      id: Number(id),
+      title: payload.title,
+      description: payload.description || ""
+    })
+  });
+  await parseApiResponse(response, "修改工作項目失敗");
+  return true;
 }
 
-export async function deleteAdminItem() {
-  throw new Error("後台刪除 API 尚未串接");
+export async function deleteAdminItem(id, token) {
+  requireToken(token);
+  const response = await fetch(DELETE_WORK_ITEM_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      id: Number(id)
+    })
+  });
+  await parseApiResponse(response, "刪除工作項目失敗");
+  return true;
 }

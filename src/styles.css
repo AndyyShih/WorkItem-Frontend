@@ -212,6 +212,30 @@ button.ghost:hover,
   background: #a92a2a;
 }
 
+.success {
+  background: #1f9d58;
+}
+
+.success:hover {
+  background: #187c45;
+}
+
+.edit {
+  background: #d28718;
+}
+
+.edit:hover {
+  background: #b06d10;
+}
+
+.cancel {
+  background: #64758b;
+}
+
+.cancel:hover {
+  background: #4f6074;
+}
+
 .text-link {
   color: #135a91;
   text-decoration: none;
@@ -337,6 +361,10 @@ button.ghost:hover,
   border-left: 4px solid #24975d;
 }
 
+.toast.info {
+  border-left: 4px solid #2a71d0;
+}
+
 .toast.error {
   border-left: 4px solid #c63636;
 }
@@ -377,6 +405,20 @@ button.ghost:hover,
   border: 1px solid #d5e1ed;
   box-shadow: 0 14px 34px rgba(17, 37, 59, 0.22);
   padding: 18px;
+}
+
+.form-modal {
+  width: min(520px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #d5e1ed;
+  box-shadow: 0 14px 34px rgba(17, 37, 59, 0.22);
+  padding: 18px;
+}
+
+.form-modal h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
 }
 
 .confirm-dialog h2 {

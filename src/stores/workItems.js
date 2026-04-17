@@ -71,7 +71,8 @@ export const useWorkItemsStore = defineStore("work-items", {
       const ui = useUiStore();
       this.loading = true;
       try {
-        await createAdminItem(payload);
+        await createAdminItem(payload, payload.token);
+        this.userItems = await listWorkItemsByUser(payload.userId, payload.token);
         ui.notify("success", "新增成功");
         return true;
       } catch (error) {
@@ -85,7 +86,8 @@ export const useWorkItemsStore = defineStore("work-items", {
       const ui = useUiStore();
       this.loading = true;
       try {
-        await updateAdminItem(id, payload);
+        await updateAdminItem(id, payload, payload.token);
+        this.userItems = await listWorkItemsByUser(payload.userId, payload.token);
         ui.notify("success", "修改成功");
         return true;
       } catch (error) {
@@ -95,12 +97,12 @@ export const useWorkItemsStore = defineStore("work-items", {
         this.loading = false;
       }
     },
-    async removeAdmin(id) {
+    async removeAdmin(id, userId, token) {
       const ui = useUiStore();
       this.loading = true;
       try {
-        await deleteAdminItem(id);
-        this.adminItems = this.adminItems.filter((item) => item.id !== Number(id));
+        await deleteAdminItem(id, token);
+        this.userItems = await listWorkItemsByUser(userId, token);
         ui.notify("success", "刪除成功");
       } catch (error) {
         ui.notify("error", error instanceof Error ? error.message : "刪除失敗");

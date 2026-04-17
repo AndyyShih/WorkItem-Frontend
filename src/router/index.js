@@ -4,8 +4,6 @@ import LoginView from "../views/LoginView.vue";
 import HomeView from "../views/HomeView.vue";
 import WorkItemListView from "../views/WorkItemListView.vue";
 import WorkItemDetailView from "../views/WorkItemDetailView.vue";
-import AdminWorkItemListView from "../views/AdminWorkItemListView.vue";
-import AdminWorkItemFormView from "../views/AdminWorkItemFormView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -32,24 +30,6 @@ const router = createRouter({
       name: "work-item-detail",
       component: WorkItemDetailView,
       meta: { requiresAuth: true }
-    },
-    {
-      path: "/admin/work-items",
-      name: "admin-work-items",
-      component: AdminWorkItemListView,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: "/admin/work-items/new",
-      name: "admin-work-item-new",
-      component: AdminWorkItemFormView,
-      meta: { requiresAuth: true, requiresAdmin: true }
-    },
-    {
-      path: "/admin/work-items/:id/edit",
-      name: "admin-work-item-edit",
-      component: AdminWorkItemFormView,
-      meta: { requiresAuth: true, requiresAdmin: true }
     }
   ]
 });
