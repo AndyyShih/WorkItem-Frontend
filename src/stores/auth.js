@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { loginApi } from "../services/authService";
+import { getProfileApi, loginApi } from "../services/authService";
 
 const SESSION_KEY = "workitem-session-user";
 const TOKEN_KEY = "workitem-session-token";
@@ -7,31 +7,38 @@ const TOKEN_KEY = "workitem-session-token";
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
-    token: null
+    token: null,
+    initialized: false
   }),
   getters: {
     isAuthenticated: (state) => Boolean(state.user),
     isAdmin: (state) => String(state.user?.role || "").toLowerCase() === "admin"
   },
   actions: {
-    restoreSession() {
-      if (this.user) {
+    async restoreSession() {
+      if (this.initialized) {
         return;
       }
-      const rawUser = localStorage.getItem(SESSION_KEY);
       const token = localStorage.getItem(TOKEN_KEY);
-      if (!rawUser) {
+      if (!token) {
+        this.initialized = true;
         return;
       }
 
       try {
-        this.user = JSON.parse(rawUser);
-        this.token = token || null;
+        const payload = await getProfileApi(token);
+        const profile = payload?.data;
+        this.user = {
+          id: profile?.id,
+          username: profile?.username,
+          name: profile?.username || profile?.name || "User",
+          role: String(profile?.role || "user").toLowerCase()
+        };
+        this.token = token;
       } catch {
-        this.user = null;
-        this.token = null;
-        localStorage.removeItem(SESSION_KEY);
-        localStorage.removeItem(TOKEN_KEY);
+        this.logout();
+      } finally {
+        this.initialized = true;
       }
     },
     async login(username, password) {
@@ -43,6 +50,9 @@ export const useAuthStore = defineStore("auth", {
         };
         const resolvedToken =
           payload?.data?.token || payload?.token || payload?.accessToken || payload?.jwt || null;
+        if (!resolvedToken) {
+          throw new Error("登入成功但未取得 token");
+        }
 
         this.user = {
           id: resolvedUser.id,
@@ -57,6 +67,7 @@ export const useAuthStore = defineStore("auth", {
         } else {
           localStorage.removeItem(TOKEN_KEY);
         }
+        this.initialized = true;
 
         return {
           ok: true
@@ -71,6 +82,7 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.user = null;
       this.token = null;
+      this.initialized = true;
       localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(TOKEN_KEY);
     }

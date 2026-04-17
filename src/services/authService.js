@@ -1,4 +1,5 @@
 const LOGIN_URL = "http://localhost:5284/api/Auth/Login";
+const PROFILE_URL = "http://localhost:5284/api/Auth/Profile";
 
 export async function loginApi(username, password) {
   const response = await fetch(LOGIN_URL, {
@@ -30,6 +31,31 @@ export async function loginApi(username, password) {
       (Array.isArray(payload?.errors) && payload.errors.length > 0
         ? payload.errors.join(", ")
         : "登入失敗");
+    throw new Error(message);
+  }
+
+  return payload;
+}
+
+export async function getProfileApi(token) {
+  const response = await fetch(PROFILE_URL, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("取得使用者資料失敗");
+  }
+
+  const payload = await response.json();
+  if (!payload?.isSuccess) {
+    const message =
+      payload?.message ||
+      (Array.isArray(payload?.errors) && payload.errors.length > 0
+        ? payload.errors.join(", ")
+        : "取得使用者資料失敗");
     throw new Error(message);
   }
 
