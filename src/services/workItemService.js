@@ -1,10 +1,12 @@
-﻿const GET_LIST_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetListWorkItem";
-const GET_DETAIL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetWorkItemDetail";
-const BATCH_CONFIRM_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/BatchWorkItemConfirm";
-const BATCH_CANCEL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/BatchWorkItemCancel";
-const CREATE_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/CreateWorkItem";
-const UPDATE_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/UpdateWorkItem";
-const DELETE_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/DeleteWorkItem";
+﻿import { API_BASE_URL } from "../config";
+
+const GET_LIST_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/GetListWorkItem`;
+const GET_DETAIL_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/GetWorkItemDetail`;
+const BATCH_CONFIRM_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/BatchWorkItemConfirm`;
+const BATCH_CANCEL_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/BatchWorkItemCancel`;
+const CREATE_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/CreateWorkItem`;
+const UPDATE_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/UpdateWorkItem`;
+const DELETE_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/DeleteWorkItem`;
 
 function requireToken(token) {
   if (!token) {
@@ -224,3 +226,4 @@ export async function deleteAdminItem(id, token) {
   await parseApiResponse(response, "刪除工作項目失敗");
   return true;
 }
+

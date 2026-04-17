@@ -1,5 +1,7 @@
-const LOGIN_URL = "http://localhost:5284/api/Auth/Login";
-const PROFILE_URL = "http://localhost:5284/api/Auth/Profile";
+import { API_BASE_URL } from "../config";
+
+const LOGIN_URL = `${API_BASE_URL}/api/Auth/Login`;
+const PROFILE_URL = `${API_BASE_URL}/api/Auth/Profile`;
 
 export async function loginApi(username, password) {
   const response = await fetch(LOGIN_URL, {
