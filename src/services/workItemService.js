@@ -1,35 +1,9 @@
-﻿import { API_BASE_URL } from "../config";
-
-const GET_LIST_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/GetListWorkItem`;
-const GET_DETAIL_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/GetWorkItemDetail`;
-const BATCH_CONFIRM_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/BatchWorkItemConfirm`;
-const BATCH_CANCEL_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/BatchWorkItemCancel`;
-const CREATE_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/CreateWorkItem`;
-const UPDATE_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/UpdateWorkItem`;
-const DELETE_WORK_ITEM_URL = `${API_BASE_URL}/api/WorkItem/DeleteWorkItem`;
+﻿import { apiGet, apiPost } from "./apiClient";
 
 function requireToken(token) {
   if (!token) {
     throw new Error("尚未登入或 token 遺失");
   }
-}
-
-async function parseApiResponse(response, defaultError) {
-  if (!response.ok) {
-    throw new Error(defaultError);
-  }
-
-  const payload = await response.json();
-  if (!payload?.isSuccess) {
-    const message =
-      payload?.message ||
-      (Array.isArray(payload?.errors) && payload.errors.length > 0
-        ? payload.errors.join(", ")
-        : defaultError);
-    throw new Error(message);
-  }
-
-  return payload;
 }
 
 function normalizeStatus(rawStatus) {
@@ -100,15 +74,11 @@ function extractListData(payload) {
 
 async function listWorkItemsByApi(token) {
   requireToken(token);
-
-  const response = await fetch(GET_LIST_WORK_ITEM_URL, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+  const payload = await apiGet("/api/WorkItem/GetListWorkItem", {
+    token,
+    fallbackError: "取得工作清單失敗"
   });
 
-  const payload = await parseApiResponse(response, "取得工作清單失敗");
   return extractListData(payload)
     .map(normalizeItem)
     .filter((item) => Number.isFinite(item.id) && item.id > 0)
@@ -118,18 +88,17 @@ async function listWorkItemsByApi(token) {
 async function getWorkItemDetailByApi(id, token) {
   requireToken(token);
 
-  const response = await fetch(GET_DETAIL_WORK_ITEM_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
+  const payload = await apiPost(
+    "/api/WorkItem/GetWorkItemDetail",
+    {
       id: Number(id)
-    })
-  });
+    },
+    {
+      token,
+      fallbackError: "取得工作詳情失敗"
+    }
+  );
 
-  const payload = await parseApiResponse(response, "取得工作詳情失敗");
   if (!payload?.data) {
     return null;
   }
@@ -137,21 +106,18 @@ async function getWorkItemDetailByApi(id, token) {
   return normalizeItem(payload.data);
 }
 
-async function postBatchAction(url, ids, token) {
+async function postBatchAction(path, ids, token) {
   requireToken(token);
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
+  await apiPost(
+    path,
+    {
       workItemIds: ids.map((id) => Number(id))
-    })
-  });
-
-  await parseApiResponse(response, "批次更新狀態失敗");
+    },
+    {
+      token,
+      fallbackError: "批次更新狀態失敗"
+    }
+  );
 }
 
 export async function listWorkItemsByUser(_userId, token) {
@@ -163,12 +129,12 @@ export async function getWorkItemDetailByUser(_userId, id, token) {
 }
 
 export async function confirmWorkItems(_userId, ids, token) {
-  await postBatchAction(BATCH_CONFIRM_WORK_ITEM_URL, ids, token);
+  await postBatchAction("/api/WorkItem/BatchWorkItemConfirm", ids, token);
   return listWorkItemsByApi(token);
 }
 
 export async function undoWorkItem(_userId, id, token) {
-  await postBatchAction(BATCH_CANCEL_WORK_ITEM_URL, [id], token);
+  await postBatchAction("/api/WorkItem/BatchWorkItemCancel", [id], token);
   return listWorkItemsByApi(token);
 }
 
@@ -178,52 +144,48 @@ export async function listAdminItems() {
 
 export async function createAdminItem(payload, token) {
   requireToken(token);
-  const response = await fetch(CREATE_WORK_ITEM_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
+  await apiPost(
+    "/api/WorkItem/CreateWorkItem",
+    {
       title: payload.title,
       description: payload.description || ""
-    })
-  });
-  await parseApiResponse(response, "新增工作項目失敗");
+    },
+    {
+      token,
+      fallbackError: "新增工作項目失敗"
+    }
+  );
   return true;
 }
 
 export async function updateAdminItem(id, payload, token) {
   requireToken(token);
-  const response = await fetch(UPDATE_WORK_ITEM_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
+  await apiPost(
+    "/api/WorkItem/UpdateWorkItem",
+    {
       id: Number(id),
       title: payload.title,
       description: payload.description || ""
-    })
-  });
-  await parseApiResponse(response, "修改工作項目失敗");
+    },
+    {
+      token,
+      fallbackError: "修改工作項目失敗"
+    }
+  );
   return true;
 }
 
 export async function deleteAdminItem(id, token) {
   requireToken(token);
-  const response = await fetch(DELETE_WORK_ITEM_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
+  await apiPost(
+    "/api/WorkItem/DeleteWorkItem",
+    {
       id: Number(id)
-    })
-  });
-  await parseApiResponse(response, "刪除工作項目失敗");
+    },
+    {
+      token,
+      fallbackError: "刪除工作項目失敗"
+    }
+  );
   return true;
 }
-
