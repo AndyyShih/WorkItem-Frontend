@@ -47,10 +47,6 @@ export function installRouterGuards(targetRouter, pinia) {
       return { name: "login" };
     }
 
-    if (to.meta.requiresAdmin && !auth.isAdmin) {
-      return { name: "home" };
-    }
-
     return true;
   });
 }

@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { getProfileApi, loginApi } from "../services/authService";
 
-const SESSION_KEY = "workitem-session-user";
 const TOKEN_KEY = "workitem-session-token";
 
 export const useAuthStore = defineStore("auth", {
@@ -61,7 +60,6 @@ export const useAuthStore = defineStore("auth", {
           role: String(resolvedUser.role || "user").toLowerCase()
         };
         this.token = resolvedToken;
-        localStorage.setItem(SESSION_KEY, JSON.stringify(this.user));
         if (resolvedToken) {
           localStorage.setItem(TOKEN_KEY, resolvedToken);
         } else {
@@ -83,7 +81,6 @@ export const useAuthStore = defineStore("auth", {
       this.user = null;
       this.token = null;
       this.initialized = true;
-      localStorage.removeItem(SESSION_KEY);
       localStorage.removeItem(TOKEN_KEY);
     }
   }

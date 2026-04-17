@@ -138,10 +138,6 @@ export async function undoWorkItem(_userId, id, token) {
   return listWorkItemsByApi(token);
 }
 
-export async function listAdminItems() {
-  throw new Error("Admin 獨立頁面已停用");
-}
-
 export async function createAdminItem(payload, token) {
   requireToken(token);
   await apiPost(

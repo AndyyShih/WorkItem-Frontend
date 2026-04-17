@@ -5,7 +5,6 @@ import {
   createAdminItem,
   deleteAdminItem,
   getWorkItemDetailByUser,
-  listAdminItems,
   listWorkItemsByUser,
   undoWorkItem,
   updateAdminItem
@@ -14,7 +13,6 @@ import {
 export const useWorkItemsStore = defineStore("work-items", {
   state: () => ({
     userItems: [],
-    adminItems: [],
     loading: false
   }),
   actions: {
@@ -52,17 +50,6 @@ export const useWorkItemsStore = defineStore("work-items", {
         ui.notify("success", "已撤銷為待確認");
       } catch (error) {
         ui.notify("error", error instanceof Error ? error.message : "撤銷失敗");
-      } finally {
-        this.loading = false;
-      }
-    },
-    async fetchAdminItems() {
-      const ui = useUiStore();
-      this.loading = true;
-      try {
-        this.adminItems = await listAdminItems();
-      } catch (error) {
-        ui.notify("error", error instanceof Error ? error.message : "讀取失敗");
       } finally {
         this.loading = false;
       }
