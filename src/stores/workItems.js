@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { useUiStore } from "./ui";
 import {
   confirmWorkItems,
   createAdminItem,
@@ -14,22 +15,16 @@ export const useWorkItemsStore = defineStore("work-items", {
   state: () => ({
     userItems: [],
     adminItems: [],
-    loading: false,
-    feedback: null
+    loading: false
   }),
   actions: {
-    setFeedback(type, message) {
-      this.feedback = { type, message };
-    },
-    clearFeedback() {
-      this.feedback = null;
-    },
     async fetchUserItems(userId, token) {
+      const ui = useUiStore();
       this.loading = true;
       try {
         this.userItems = await listWorkItemsByUser(userId, token);
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "讀取失敗");
+        ui.notify("error", error instanceof Error ? error.message : "讀取失敗");
       } finally {
         this.loading = false;
       }
@@ -37,72 +32,78 @@ export const useWorkItemsStore = defineStore("work-items", {
     async fetchDetail(userId, id, token) {
       return getWorkItemDetailByUser(userId, id, token);
     },
-    async confirmSelected(userId, ids) {
+    async confirmSelected(userId, ids, token) {
+      const ui = useUiStore();
       this.loading = true;
       try {
-        this.userItems = await confirmWorkItems(userId, ids);
-        this.setFeedback("success", "已將選取項目更新為已確認");
+        this.userItems = await confirmWorkItems(userId, ids, token);
+        ui.notify("success", "已將選取項目更新為已確認");
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "更新失敗");
+        ui.notify("error", error instanceof Error ? error.message : "更新失敗");
       } finally {
         this.loading = false;
       }
     },
-    async undo(userId, id) {
+    async undo(userId, id, token) {
+      const ui = useUiStore();
       this.loading = true;
       try {
-        this.userItems = await undoWorkItem(userId, id);
-        this.setFeedback("success", "已撤銷為待確認");
+        this.userItems = await undoWorkItem(userId, id, token);
+        ui.notify("success", "已撤銷為待確認");
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "撤銷失敗");
+        ui.notify("error", error instanceof Error ? error.message : "撤銷失敗");
       } finally {
         this.loading = false;
       }
     },
     async fetchAdminItems() {
+      const ui = useUiStore();
       this.loading = true;
       try {
         this.adminItems = await listAdminItems();
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "讀取失敗");
+        ui.notify("error", error instanceof Error ? error.message : "讀取失敗");
       } finally {
         this.loading = false;
       }
     },
     async createAdmin(payload) {
+      const ui = useUiStore();
       this.loading = true;
       try {
         await createAdminItem(payload);
-        this.setFeedback("success", "新增成功");
+        ui.notify("success", "新增成功");
         return true;
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "新增失敗");
+        ui.notify("error", error instanceof Error ? error.message : "新增失敗");
         return false;
       } finally {
         this.loading = false;
       }
     },
     async updateAdmin(id, payload) {
+      const ui = useUiStore();
       this.loading = true;
       try {
         await updateAdminItem(id, payload);
-        this.setFeedback("success", "修改成功");
+        ui.notify("success", "修改成功");
         return true;
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "修改失敗");
+        ui.notify("error", error instanceof Error ? error.message : "修改失敗");
         return false;
       } finally {
         this.loading = false;
       }
     },
     async removeAdmin(id) {
+      const ui = useUiStore();
       this.loading = true;
       try {
         await deleteAdminItem(id);
         this.adminItems = this.adminItems.filter((item) => item.id !== Number(id));
-        this.setFeedback("success", "刪除成功");
+        ui.notify("success", "刪除成功");
       } catch (error) {
-        this.setFeedback("error", error instanceof Error ? error.message : "刪除失敗");
+        ui.notify("error", error instanceof Error ? error.message : "刪除失敗");
       } finally {
         this.loading = false;
       }

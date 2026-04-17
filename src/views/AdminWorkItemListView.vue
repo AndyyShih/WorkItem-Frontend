@@ -1,9 +1,11 @@
 <script setup>
 import { onMounted } from "vue";
 import { RouterLink } from "vue-router";
+import { useUiStore } from "../stores/ui";
 import { useWorkItemsStore } from "../stores/workItems";
 
 const store = useWorkItemsStore();
+const ui = useUiStore();
 
 function formatDate(value) {
   if (!value) {
@@ -17,7 +19,7 @@ function formatDate(value) {
 }
 
 async function removeItem(id) {
-  const ok = window.confirm("確定要刪除這筆 Work Item？");
+  const ok = await ui.confirm("確定要刪除這筆 Work Item？");
   if (!ok) {
     return;
   }
@@ -35,10 +37,6 @@ onMounted(() => {
       <h1>Admin Work Item</h1>
       <RouterLink class="button-link" :to="{ name: 'admin-work-item-new' }">新增 Work Item</RouterLink>
     </div>
-
-    <p v-if="store.feedback" :class="['banner', store.feedback.type]">
-      {{ store.feedback.message }}
-    </p>
 
     <p v-if="store.loading" class="hint">讀取中...</p>
     <p v-else-if="store.adminItems.length === 0" class="empty">目前無資料</p>

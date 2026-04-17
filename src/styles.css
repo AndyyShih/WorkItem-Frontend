@@ -222,22 +222,6 @@ button.ghost:hover,
   text-decoration: underline;
 }
 
-.banner {
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin: 0 0 14px;
-}
-
-.banner.success {
-  background: var(--success-bg);
-  color: var(--success-text);
-}
-
-.banner.error {
-  background: var(--error-bg);
-  color: var(--error-text);
-}
-
 .empty {
   border: 1px dashed #b8c8d8;
   border-radius: 10px;
@@ -322,6 +306,93 @@ button.ghost:hover,
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.toast-stack {
+  position: fixed;
+  top: 74px;
+  right: 16px;
+  z-index: 60;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 24px));
+}
+
+.toast {
+  border-radius: 12px;
+  border: 1px solid #d6e2ef;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(16, 38, 62, 0.12);
+  padding: 12px 40px 12px 12px;
+  position: relative;
+}
+
+.toast p {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.toast.success {
+  border-left: 4px solid #24975d;
+}
+
+.toast.error {
+  border-left: 4px solid #c63636;
+}
+
+.toast-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  border: 0;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  line-height: 1;
+  border-radius: 999px;
+  background: transparent;
+  color: #5f7388;
+  font-size: 18px;
+}
+
+.toast-close:hover {
+  background: #eef4fa;
+}
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 31, 46, 0.4);
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.confirm-dialog {
+  width: min(420px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #d5e1ed;
+  box-shadow: 0 14px 34px rgba(17, 37, 59, 0.22);
+  padding: 18px;
+}
+
+.confirm-dialog h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.confirm-dialog p {
+  margin: 0;
+}
+
+.confirm-actions {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 @media (max-width: 900px) {

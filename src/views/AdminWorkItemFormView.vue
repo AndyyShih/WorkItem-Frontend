@@ -1,11 +1,13 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
+import { useUiStore } from "../stores/ui";
 import { useWorkItemsStore } from "../stores/workItems";
 
 const route = useRoute();
 const router = useRouter();
 const store = useWorkItemsStore();
+const ui = useUiStore();
 
 const form = reactive({
   title: "",
@@ -19,6 +21,7 @@ const isEdit = computed(() => Boolean(route.params.id));
 function validate() {
   if (!form.title.trim()) {
     error.value = "標題為必填";
+    ui.notify("error", error.value);
     return false;
   }
   error.value = "";
@@ -50,7 +53,7 @@ onMounted(async () => {
   if (isEdit.value) {
     const target = store.adminItems.find((item) => item.id === Number(route.params.id));
     if (!target) {
-      store.setFeedback("error", "找不到要編輯的資料");
+      ui.notify("error", "找不到要編輯的資料");
       router.push({ name: "admin-work-items" });
       return;
     }
@@ -78,9 +81,6 @@ onMounted(async () => {
         <span>描述</span>
         <textarea v-model="form.description" rows="5"></textarea>
       </label>
-
-      <p v-if="error" class="banner error">{{ error }}</p>
-
       <div class="form-actions">
         <button type="submit" :disabled="store.loading">{{ isEdit ? "儲存" : "建立" }}</button>
         <RouterLink class="button-link ghost-link" :to="{ name: 'admin-work-items' }">

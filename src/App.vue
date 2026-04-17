@@ -23,12 +23,17 @@
         <RouterView />
       </main>
     </div>
+
+    <ToastStack />
+    <ConfirmDialog />
   </div>
 </template>
 
 <script setup>
 import { useRoute, useRouter } from "vue-router";
 import { useAuthStore } from "./stores/auth";
+import ConfirmDialog from "./components/ConfirmDialog.vue";
+import ToastStack from "./components/ToastStack.vue";
 
 const auth = useAuthStore();
 const router = useRouter();

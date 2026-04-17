@@ -2,14 +2,15 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/auth";
+import { useUiStore } from "../stores/ui";
 
 const auth = useAuthStore();
+const ui = useUiStore();
 const router = useRouter();
 const form = reactive({
   username: "",
   password: ""
 });
-const errorMessage = ref("");
 const submitting = ref(false);
 
 async function login() {
@@ -20,10 +21,9 @@ async function login() {
   const result = await auth.login(form.username, form.password);
   submitting.value = false;
   if (!result.ok) {
-    errorMessage.value = result.message;
+    ui.notify("error", result.message);
     return;
   }
-  errorMessage.value = "";
   router.push({ name: "home" });
 }
 </script>
@@ -43,8 +43,6 @@ async function login() {
         <span>密碼</span>
         <input v-model="form.password" type="password" autocomplete="current-password" />
       </label>
-
-      <p v-if="errorMessage" class="banner error">{{ errorMessage }}</p>
       <button type="submit" :disabled="submitting">
         {{ submitting ? "登入中..." : "登入" }}
       </button>
