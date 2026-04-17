@@ -1,4 +1,5 @@
 const STORAGE_KEY = "work-item-db";
+const GET_LIST_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetListWorkItem";
 
 const seedData = {
   items: [
@@ -68,7 +69,65 @@ function delay(value) {
   return new Promise((resolve) => setTimeout(() => resolve(value), 120));
 }
 
-export async function listWorkItemsByUser(userId) {
+function normalizeStatus(rawStatus) {
+  const normalized = String(rawStatus || "").toLowerCase();
+  if (normalized.includes("confirm")) {
+    return "confirmed";
+  }
+  return "pending";
+}
+
+function normalizeItem(raw) {
+  return {
+    id: Number(raw.id ?? raw.workItemId ?? raw.workitemId ?? raw.itemId),
+    title: String(raw.title ?? raw.name ?? raw.subject ?? ""),
+    description: String(raw.description ?? raw.content ?? ""),
+    status: normalizeStatus(raw.status ?? raw.state),
+    createdAt: raw.createdAt ?? raw.createTime ?? raw.createdOn ?? new Date().toISOString(),
+    updatedAt: raw.updatedAt ?? raw.updateTime ?? raw.updatedOn ?? new Date().toISOString()
+  };
+}
+
+async function listWorkItemsByApi(token) {
+  const response = await fetch(GET_LIST_WORK_ITEM_URL, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  if (!response.ok) {
+    throw new Error("取得工作清單失敗");
+  }
+
+  const payload = await response.json();
+  if (!payload?.isSuccess) {
+    const message =
+      payload?.message ||
+      (Array.isArray(payload?.errors) && payload.errors.length > 0
+        ? payload.errors.join(", ")
+        : "取得工作清單失敗");
+    throw new Error(message);
+  }
+
+  if (!Array.isArray(payload?.data)) {
+    return [];
+  }
+
+  return payload.data
+    .map(normalizeItem)
+    .filter((item) => Number.isFinite(item.id) && item.id > 0)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function listWorkItemsByUser(userId, token) {
+  if (token) {
+    try {
+      return await listWorkItemsByApi(token);
+    } catch {
+      // fallback to local mock while other APIs are not fully wired
+    }
+  }
+
   const db = readDb();
   const statusMap = db.userStatus[userId] || {};
   const result = db.items

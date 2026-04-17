@@ -56,7 +56,7 @@ async function undo(id) {
 }
 
 onMounted(() => {
-  workItems.fetchUserItems(auth.user.username);
+  workItems.fetchUserItems(auth.user.username, auth.token);
 });
 </script>
 

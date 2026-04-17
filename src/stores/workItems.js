@@ -24,10 +24,10 @@ export const useWorkItemsStore = defineStore("work-items", {
     clearFeedback() {
       this.feedback = null;
     },
-    async fetchUserItems(userId) {
+    async fetchUserItems(userId, token) {
       this.loading = true;
       try {
-        this.userItems = await listWorkItemsByUser(userId);
+        this.userItems = await listWorkItemsByUser(userId, token);
       } catch (error) {
         this.setFeedback("error", error instanceof Error ? error.message : "讀取失敗");
       } finally {
