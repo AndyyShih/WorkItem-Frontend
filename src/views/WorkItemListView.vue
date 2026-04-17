@@ -26,7 +26,14 @@ function statusLabel(status) {
 }
 
 function formatDate(value) {
-  return new Date(value).toLocaleString("zh-TW");
+  if (!value) {
+    return "";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toLocaleString("zh-TW");
 }
 
 function toggleSelect(id, checked) {

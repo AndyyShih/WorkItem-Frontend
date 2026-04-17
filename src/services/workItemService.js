@@ -1,5 +1,6 @@
 const STORAGE_KEY = "work-item-db";
 const GET_LIST_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetListWorkItem";
+const GET_DETAIL_WORK_ITEM_URL = "http://localhost:5284/api/WorkItem/GetDetail";
 
 const seedData = {
   items: [
@@ -78,13 +79,15 @@ function normalizeStatus(rawStatus) {
 }
 
 function normalizeItem(raw) {
+  const createdAt = raw.createdAt ?? raw.createTime ?? raw.createdOn ?? null;
+  const updatedAt = raw.updatedAt ?? raw.updateTime ?? raw.updatedOn ?? null;
   return {
     id: Number(raw.id ?? raw.workItemId ?? raw.workitemId ?? raw.itemId),
     title: String(raw.title ?? raw.name ?? raw.subject ?? ""),
     description: String(raw.description ?? raw.content ?? ""),
     status: normalizeStatus(raw.status ?? raw.state),
-    createdAt: raw.createdAt ?? raw.createTime ?? raw.createdOn ?? new Date().toISOString(),
-    updatedAt: raw.updatedAt ?? raw.updateTime ?? raw.updatedOn ?? new Date().toISOString()
+    createdAt,
+    updatedAt
   };
 }
 
@@ -136,10 +139,50 @@ export async function listWorkItemsByUser(userId, token) {
   return delay(result);
 }
 
-export async function getWorkItemDetailByUser(userId, id) {
+async function getWorkItemDetailByApi(id, token) {
+  const response = await fetch(GET_DETAIL_WORK_ITEM_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      id: Number(id)
+    })
+  });
+  if (!response.ok) {
+    throw new Error("取得工作詳情失敗");
+  }
+
+  const payload = await response.json();
+  if (!payload?.isSuccess) {
+    const message =
+      payload?.message ||
+      (Array.isArray(payload?.errors) && payload.errors.length > 0
+        ? payload.errors.join(", ")
+        : "取得工作詳情失敗");
+    throw new Error(message);
+  }
+
+  if (!payload?.data) {
+    return null;
+  }
+  return normalizeItem(payload.data);
+}
+
+export async function getWorkItemDetailByUser(userId, id, token) {
+  if (token) {
+    try {
+      return await getWorkItemDetailByApi(id, token);
+    } catch {
+      // fallback to local mock while other APIs are not fully wired
+    }
+  }
+
+  const targetId = Number(id);
   const db = readDb();
   const statusMap = db.userStatus[userId] || {};
-  const target = db.items.find((item) => item.id === Number(id));
+  const target = db.items.find((item) => item.id === targetId);
   if (!target) {
     return delay(null);
   }

@@ -34,8 +34,8 @@ export const useWorkItemsStore = defineStore("work-items", {
         this.loading = false;
       }
     },
-    async fetchDetail(userId, id) {
-      return getWorkItemDetailByUser(userId, id);
+    async fetchDetail(userId, id, token) {
+      return getWorkItemDetailByUser(userId, id, token);
     },
     async confirmSelected(userId, ids) {
       this.loading = true;

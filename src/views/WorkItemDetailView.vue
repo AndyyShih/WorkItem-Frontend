@@ -11,7 +11,14 @@ const item = ref(null);
 const loading = ref(false);
 
 function formatDate(value) {
-  return new Date(value).toLocaleString("zh-TW");
+  if (!value) {
+    return "";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toLocaleString("zh-TW");
 }
 
 function statusLabel(status) {
@@ -20,7 +27,7 @@ function statusLabel(status) {
 
 onMounted(async () => {
   loading.value = true;
-  item.value = await store.fetchDetail(auth.user.username, route.params.id);
+  item.value = await store.fetchDetail(auth.user.username, route.params.id, auth.token);
   loading.value = false;
 });
 </script>
